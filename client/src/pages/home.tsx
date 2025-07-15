@@ -1,16 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import SubscriptionPanel from "@/components/SubscriptionPanel";
 import NotificationHistory from "@/components/NotificationHistory";
 import SystemStatus from "@/components/SystemStatus";
-import { onForegroundMessage, playNotificationSound } from "@/lib/firebase";
+import NotificationAlert from "@/components/NotificationAlert";
+import { startNotificationPolling } from "@/lib/notifications";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+  const [currentNotification, setCurrentNotification] = useState<any>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -27,24 +29,24 @@ export default function Home() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  // Setup Firebase foreground message listener
+  // Setup notification polling
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const unsubscribe = onForegroundMessage((payload) => {
-      console.log('Received foreground message:', payload);
+    const stopPolling = startNotificationPolling((notification) => {
+      console.log('Received notification:', notification);
       
-      // Play notification sound
-      playNotificationSound();
+      // Show visual notification alert
+      setCurrentNotification(notification);
       
       // Show toast notification
       toast({
-        title: payload.notification?.title || "New Notification",
-        description: payload.notification?.body || "You have a new notification",
+        title: notification.title || "New Notification",
+        description: notification.message || "You have a new notification",
       });
     });
 
-    return unsubscribe;
+    return stopPolling;
   }, [isAuthenticated, toast]);
 
   if (isLoading) {
@@ -78,6 +80,11 @@ export default function Home() {
           </div>
         </div>
       </main>
+      
+      <NotificationAlert 
+        notification={currentNotification} 
+        onClose={() => setCurrentNotification(null)} 
+      />
     </div>
   );
 }

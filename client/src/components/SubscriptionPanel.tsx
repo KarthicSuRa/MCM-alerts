@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { requestNotificationPermission } from "@/lib/firebase";
+import { requestNotificationPermission } from "@/lib/notifications";
 import { Server, Copy, CheckCircle } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
