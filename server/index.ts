@@ -1,7 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-
+import 'dotenv/config';
+// Ensure that the environment variables are loaded
+console.log('Loaded DATABASE_URL:', process.env.DATABASE_URL);
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -68,3 +70,4 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
   });
 })();
+console.log('Database URL:', process.env.DATABASE_URL);
