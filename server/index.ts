@@ -2,8 +2,10 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import 'dotenv/config';
+
 // Ensure that the environment variables are loaded
 console.log('Loaded DATABASE_URL:', process.env.DATABASE_URL);
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -58,16 +60,13 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  // Use PORT environment variable with fallback
+  const port = parseInt(process.env.PORT || "3000", 10);
+  const host = process.env.HOST || "0.0.0.0"; // Changed from 127.0.0.1 to 0.0.0.0
+  
+  server.listen(port, host, () => {
+    log(`serving on ${host}:${port}`);
   });
 })();
+
 console.log('Database URL:', process.env.DATABASE_URL);

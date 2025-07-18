@@ -35,20 +35,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post('/api/subscriptions', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = (req.session as any).user.id;
-      const subscriptionData = insertSubscriptionSchema.parse({
-        ...req.body,
-        userId,
-      });
-      
-      const subscription = await storage.upsertSubscription(subscriptionData);
-      res.json(subscription);
-    } catch (error) {
-      console.error("Error updating subscription:", error);
-      res.status(500).json({ message: "Failed to update subscription" });
-    }
-  });
+  try {
+    const userId = (req.session as any).user.id;
+    const flexibleSubscriptionSchema = insertSubscriptionSchema.extend({
+      type: z.coerce.string(),
+      userId: z.coerce.string(),
+      fcmToken: z.union([z.string(), z.boolean()]).transform(val =>
+        typeof val === "boolean" ? val.toString() : val
+      ).optional(),
+    });
+
+    const subscriptionData = flexibleSubscriptionSchema.parse({
+      ...req.body,
+      userId,
+    });
+
+    const subscription = await storage.upsertSubscription(subscriptionData);
+    res.json(subscription);
+  } catch (error) {
+    console.error("Error updating subscription:", error);
+    res.status(500).json({ message: "Failed to update subscription" });
+  }
+});
 
   app.post('/api/subscriptions/fcm-token', isAuthenticated, async (req: any, res) => {
     try {
